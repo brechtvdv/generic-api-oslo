@@ -11,6 +11,8 @@ app.enable('etag')
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Expose-Headers", "Link");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.header("Cache-Control", "max-age=604800"); // 1 week
   res.header("Content-Type", "application/ld+json");
   res.set('Link', '<' + baseUrl + 'oslo-api/apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
