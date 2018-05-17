@@ -4,6 +4,7 @@ const SPARQL = require('sparql-client-2').SPARQL;
 const sparql = new (require('sparql-client-2').SparqlClient)('http://data.vlaanderen.be/sparql');
 
 const PAGE_SIZE = 10;
+const baseUrl = process.argv.length < 3 ? 'http://localhost:3000/' : process.argv[2];
 
 app.enable('etag')
 
@@ -12,7 +13,7 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header("Cache-Control", "max-age=604800"); // 1 week
   res.header("Content-Type", "application/ld+json");
-  res.set('Link', '<http://localhost:3000/apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
+  res.set('Link', '<' + baseUrl + 'apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
 
   next();
 });
@@ -25,7 +26,7 @@ app.get('/oslo-api', (req, res) => {
   const doc = {
     "@context": {
       "hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "vocab": baseUrl + "oslo-api/apiDocumentation#",
       "EntryPoint": "vocab:EntryPoint",
       "organizations": {
         "@id": "vocab:EntryPoint/organizations",
@@ -69,7 +70,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
     "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
       "Organization": "http://example.org/Organization",
       "hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "vocab": baseUrl + "oslo-api/apiDocumentation#",
       "name": "http://schema.org/name",
       "description": "http://schema.org/description",
       "seeAlso": {
@@ -84,6 +85,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       },
       "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
       "identifier": "http://www.w3.org/ns/org#identifier",
+      "classification": "http://www.w3.org/ns/org#classification"
     }],
     "@id": `/oslo-api/organizations/${encodeURIComponent(orgId)}`,
     "@type": "Organization",
@@ -117,7 +119,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
   const doc = {
     "@context": {
       "hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "vocab": baseUrl + "oslo-api/apiDocumentation#",
       "OrganizationCollection": "vocab:OrganizationCollection",
       "PagedCollection": "hydra:PagedCollection",
       "members": "http://www.w3.org/ns/hydra/core#member"
@@ -138,7 +140,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
 app.get('/oslo-api/apiDocumentation', (req, res) => {
   const apiDocumentation = {
     "@context": {
-      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "vocab": baseUrl + "oslo-api/apiDocumentation#",
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "ApiDocumentation": "hydra:ApiDocumentation",
       "property": {
@@ -179,7 +181,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
       },
       "license": "http://creativecommons.org/ns#license",
     },
-    "@id": "http://localhost:3000/apiDocumentation",
+    "@id": baseUrl + "oslo-api/apiDocumentation",
     "@type": "ApiDocumentation",
     "license": "https://overheid.vlaanderen.be/sites/default/files/documenten/ict-egov/licenties/hergebruik/modellicentie_gratis_hergebruik_v1_0.html",
     "supportedClass": [
@@ -252,33 +254,49 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         ],
         "supportedProperty": [
           {
-            "property": "http://schema.org/name",
-            "hydra:title": "name",
-            "hydra:description": "The Organization's name",
+            "property": "http://www.w3.org/2004/02/skos/core#prefLabel",
+            "hydra:title": "label",
+            "hydra:description": "The Organization's label",
             "required": true,
             "readonly": false,
             "writeonly": false
           },
           {
-            "property": "http://schema.org/description",
-            "hydra:title": "description",
-            "hydra:description": "Description of the Organization",
+            "property": "rdfs:seeAlso",
+            "hydra:title": "seeAlso",
+            "hydra:description": "Related link",
             "required": true,
             "readonly": false,
             "writeonly": false
           },
           {
-            "property": "http://schema.org/startDate",
-            "hydra:title": "start_date",
-            "hydra:description": "The start date and time of the Organization in ISO 8601 date format",
+            "property": "http://mu.semte.ch/vocabularies/core/uuid",
+            "hydra:title": "uuid",
+            "hydra:description": "UUID of the organization",
             "required": true,
             "readonly": false,
             "writeonly": false
           },
           {
-            "property": "http://schema.org/endDate",
-            "hydra:title": "end_date",
-            "hydra:description": "The end date and time of the Organization in ISO 8601 date format",
+            "property": "http://www.w3.org/ns/regorg#orgStatus",
+            "hydra:title": "status",
+            "hydra:description": "Status of the organization",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          },
+          {
+            "property": "http://www.w3.org/ns/org#classification",
+            "hydra:title": "classification",
+            "hydra:description": "Classifier for the organization.",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          },
+          {
+            "property": "http://www.w3.org/ns/org#identifier",
+            "hydra:title": "status",
+            "hydra:description": "Internal organization identifier",
             "required": true,
             "readonly": false,
             "writeonly": false
