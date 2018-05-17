@@ -1,37 +1,9 @@
 const express = require('express')
 const app = express()
-const querystring = require('querystring')
-const http = require('http')
+const SPARQL = require('sparql-client-2').SPARQL;
+const sparql = new (require('sparql-client-2').SparqlClient)('http://data.vlaanderen.be/sparql');
 
-const retrieve = function(options, postData) {
-  // return new pending promise
-  return new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
-      console.log(`STATUS: ${res.statusCode}`);
-      console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        console.log(`BODY: ${chunk}`);
-        resolve(chunk);
-      });
-      res.on('end', () => {
-        console.log('No more data in response.');
-      });
-    });
-
-    req.on('error', (e) => {
-      reject(e);
-      console.error(`problem with request: ${e.message}`);
-    });
-
-    // write data to request body
-    req.write(postData);
-    req.end();
-
-
-  });
-}
-
+const PAGE_SIZE = 10;
 
 
 const example = {
@@ -335,56 +307,44 @@ app.get('/oslo-api/org/1', (req, res) => {
   res.send(example);
 });
 
-app.get('/oslo-api/organizations', (req, res) => {
-  const organizations = [];
-
-
-  const postData = querystring.stringify({
-    'query': `PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                SELECT * WHERE {
-                  ?s ?p ?o
-                }
-                LIMIT 10`
-  });
-
-  const options = {
-    hostname: 'data.vlaanderen.be',
-    port: 80,
-    path: '/sparql',
-    method: 'POST',
-    headers: {
-      'Accept': 'text/turtle'
-      // 'Content-Length': Buffer.byteLength(postData)
+app.get('/oslo-api/organizations/', async (req, res) => {
+  let page = req.query.page;
+  if (!page) {
+    return res.redirect('/oslo-api/organizations/?page=0');
+  }
+  page = parseInt(page, 10);
+  const offset = page * PAGE_SIZE;
+  const response = await sparql.query(SPARQL`
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    SELECT ?org WHERE {
+      ?org a <http://www.w3.org/ns/org#Organization>
     }
-  };
+    OFFSET ${offset}
+    LIMIT ${PAGE_SIZE}`).execute();
 
-
-  // send SPARQL request
-  retrieve(options, postData).then(function(response) {
-    debugger;
-    console.log("Success!", response);
-  }, function(error) {
-    console.error("Failed!", error);
-  })
-
+  const organizations = response.results.bindings.map((binding) => ({
+    "@id": binding.org.value,
+    "@type": "http://www.w3.org/ns/org#Organization"
+  }));
 
   const doc = {
     "@context": {
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
       "OrganizationCollection": "vocab:OrganizationCollection",
+      "PagedCollection": "hydra:PagedCollection",
       "members": "http://www.w3.org/ns/hydra/core#member"
     },
     "@id": "/oslo-api/organizations/",
     "@type": "OrganizationCollection",
-    "members": [
-      {
-        "@id": "/oslo-api/org/131",
-        "@type": "http://www.w3.org/ns/org#Organization"
-      }
-    ]
+    "firstPage": "/oslo-api/organizations?page=0",
+    "nextPage": "/oslo-api/organizations?page=" + (page + 1),
   };
+  if (page > 0) {
+    doc["previousPage"] = "/oslo-api/organizations?page=" + (page - 1);
+  }
+  doc["members"] = organizations;
 
   res.send(doc);
 });
