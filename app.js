@@ -5,248 +5,6 @@ const sparql = new (require('sparql-client-2').SparqlClient)('http://data.vlaand
 
 const PAGE_SIZE = 10;
 
-const apiDocumentation = {
-  "@context": {
-    "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
-    "hydra": "http://www.w3.org/ns/hydra/core#",
-    "ApiDocumentation": "hydra:ApiDocumentation",
-    "property": {
-      "@id": "hydra:property",
-      "@type": "@id"
-    },
-    "readonly": "hydra:readonly",
-    "writeonly": "hydra:writeonly",
-    "supportedClass": "hydra:supportedClass",
-    "supportedProperty": "hydra:supportedProperty",
-    "supportedOperation": "hydra:supportedOperation",
-    "method": "hydra:method",
-    "expects": {
-      "@id": "hydra:expects",
-      "@type": "@id"
-    },
-    "returns": {
-      "@id": "hydra:returns",
-      "@type": "@id"
-    },
-    "statusCodes": "hydra:statusCodes",
-    "code": "hydra:statusCode",
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-    "label": "rdfs:label",
-    "description": "rdfs:comment",
-    "domain": {
-      "@id": "rdfs:domain",
-      "@type": "@id"
-    },
-    "range": {
-      "@id": "rdfs:range",
-      "@type": "@id"
-    },
-    "subClassOf": {
-      "@id": "rdfs:subClassOf",
-      "@type": "@id"
-    }
-  },
-  "@id": "http://localhost:3000/apiDocumentation",
-  "@type": "ApiDocumentation",
-  "supportedClass": [
-    {
-      "@id": "http://www.w3.org/ns/hydra/core#Collection",
-      "@type": "hydra:Class",
-      "hydra:title": "Collection",
-      "hydra:description": null,
-      "supportedOperation": [],
-      "supportedProperty": [
-        {
-          "property": "http://www.w3.org/ns/hydra/core#member",
-          "hydra:title": "members",
-          "hydra:description": "The members of this collection.",
-          "required": null,
-          "readonly": false,
-          "writeonly": false
-        }
-      ]
-    },
-    {
-      "@id": "http://www.w3.org/ns/hydra/core#Resource",
-      "@type": "hydra:Class",
-      "hydra:title": "Resource",
-      "hydra:description": null,
-      "supportedOperation": [],
-      "supportedProperty": []
-    },
-    {
-      "@id": "http://www.w3.org/ns/org#Organization",
-      "@type": "hydra:Class",
-      "hydra:title": "Organization",
-      "hydra:description": null,
-      "supportedOperation": [
-        {
-          "@id": "_:Organization_replace",
-          "@type": "http://schema.org/UpdateAction",
-          "method": "PUT",
-          "label": "Replaces an existing Organization entity",
-          "description": null,
-          "expects": "http://www.w3.org/ns/org#Organization",
-          "returns": "http://www.w3.org/ns/org#Organization",
-          "statusCodes": [
-            {
-              "code": 404,
-              "description": "If the Organization entity wasn't found."
-            }
-          ]
-        },
-        {
-          "@id": "_:Organization_delete",
-          "@type": "http://schema.org/DeleteAction",
-          "method": "DELETE",
-          "label": "Deletes a Organization entity",
-          "description": null,
-          "expects": null,
-          "returns": "http://www.w3.org/2002/07/owl#Nothing",
-          "statusCodes": []
-        },
-        {
-          "@id": "_:Organization_retrieve",
-          "@type": "hydra:Operation",
-          "method": "GET",
-          "label": "Retrieves a Organization entity",
-          "description": null,
-          "expects": null,
-          "returns": "http://www.w3.org/ns/org#Organization",
-          "statusCodes": []
-        }
-      ],
-      "supportedProperty": [
-        {
-          "property": "http://schema.org/name",
-          "hydra:title": "name",
-          "hydra:description": "The Organization's name",
-          "required": true,
-          "readonly": false,
-          "writeonly": false
-        },
-        {
-          "property": "http://schema.org/description",
-          "hydra:title": "description",
-          "hydra:description": "Description of the Organization",
-          "required": true,
-          "readonly": false,
-          "writeonly": false
-        },
-        {
-          "property": "http://schema.org/startDate",
-          "hydra:title": "start_date",
-          "hydra:description": "The start date and time of the Organization in ISO 8601 date format",
-          "required": true,
-          "readonly": false,
-          "writeonly": false
-        },
-        {
-          "property": "http://schema.org/endDate",
-          "hydra:title": "end_date",
-          "hydra:description": "The end date and time of the Organization in ISO 8601 date format",
-          "required": true,
-          "readonly": false,
-          "writeonly": false
-        }
-      ]
-    },
-    {
-      "@id": "vocab:EntryPoint",
-      "@type": "hydra:Class",
-      "subClassOf": null,
-      "label": "EntryPoint",
-      "description": "The main entry point or homepage of the API.",
-      "supportedOperation": [
-        {
-          "@id": "_:entry_point",
-          "@type": "hydra:Operation",
-          "method": "GET",
-          "label": "The APIs main entry point.",
-          "description": null,
-          "expects": null,
-          "returns": "vocab:EntryPoint",
-          "statusCodes": []
-        }
-      ],
-      "supportedProperty": [
-        {
-          "property": {
-            "@id": "vocab:EntryPoint/organizations",
-            "@type": "hydra:Link",
-            "label": "Organizations",
-            "description": "The Organizations collection",
-            "domain": "vocab:EntryPoint",
-            "range": "vocab:OrganizationCollection",
-            "supportedOperation": [
-              {
-                "@id": "_:Organization_collection_retrieve",
-                "@type": "hydra:Operation",
-                "method": "GET",
-                "label": "Retrieves all Organization entities",
-                "description": null,
-                "expects": null,
-                "returns": "vocab:OrganizationCollection",
-                "statusCodes": []
-              }
-            ]
-          },
-          "hydra:title": "Organizations",
-          "hydra:description": "The Organizations collection",
-          "required": null,
-          "readonly": true,
-          "writeonly": false
-        }
-      ]
-    },
-    {
-      "@id": "vocab:OrganizationCollection",
-      "@type": "hydra:Class",
-      "subClassOf": "http://www.w3.org/ns/hydra/core#Collection",
-      "label": "OrganizationCollection",
-      "description": "A collection of Organizations",
-      "supportedOperation": [
-        {
-          "@id": "_:Organization_create",
-          "@type": "http://schema.org/AddAction",
-          "method": "POST",
-          "label": "Creates a new Organization entity",
-          "description": null,
-          "expects": "http://www.w3.org/ns/org#Organization",
-          "returns": "http://www.w3.org/ns/org#Organization",
-          "statusCodes": [
-            {
-              "code": 201,
-              "description": "If the Organization entity was created successfully."
-            }
-          ]
-        },
-        {
-          "@id": "_:Organization_collection_retrieve",
-          "@type": "hydra:Operation",
-          "method": "GET",
-          "label": "Retrieves all Organization entities",
-          "description": null,
-          "expects": null,
-          "returns": "vocab:OrganizationCollection",
-          "statusCodes": []
-        }
-      ],
-      "supportedProperty": [
-        {
-          "property": "http://www.w3.org/ns/hydra/core#member",
-          "hydra:title": "members",
-          "hydra:description": "The Organizations",
-          "required": null,
-          "readonly": false,
-          "writeonly": false
-        }
-      ]
-    }
-  ]
-};
-
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -375,6 +133,247 @@ app.get('/oslo-api/organizations/', async (req, res) => {
 });
 
 app.get('/oslo-api/apiDocumentation', (req, res) => {
+  const apiDocumentation = {
+    "@context": {
+      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "hydra": "http://www.w3.org/ns/hydra/core#",
+      "ApiDocumentation": "hydra:ApiDocumentation",
+      "property": {
+        "@id": "hydra:property",
+        "@type": "@id"
+      },
+      "readonly": "hydra:readonly",
+      "writeonly": "hydra:writeonly",
+      "supportedClass": "hydra:supportedClass",
+      "supportedProperty": "hydra:supportedProperty",
+      "supportedOperation": "hydra:supportedOperation",
+      "method": "hydra:method",
+      "expects": {
+        "@id": "hydra:expects",
+        "@type": "@id"
+      },
+      "returns": {
+        "@id": "hydra:returns",
+        "@type": "@id"
+      },
+      "statusCodes": "hydra:statusCodes",
+      "code": "hydra:statusCode",
+      "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "label": "rdfs:label",
+      "description": "rdfs:comment",
+      "domain": {
+        "@id": "rdfs:domain",
+        "@type": "@id"
+      },
+      "range": {
+        "@id": "rdfs:range",
+        "@type": "@id"
+      },
+      "subClassOf": {
+        "@id": "rdfs:subClassOf",
+        "@type": "@id"
+      }
+    },
+    "@id": "http://localhost:3000/apiDocumentation",
+    "@type": "ApiDocumentation",
+    "supportedClass": [
+      {
+        "@id": "http://www.w3.org/ns/hydra/core#Collection",
+        "@type": "hydra:Class",
+        "hydra:title": "Collection",
+        "hydra:description": null,
+        "supportedOperation": [],
+        "supportedProperty": [
+          {
+            "property": "http://www.w3.org/ns/hydra/core#member",
+            "hydra:title": "members",
+            "hydra:description": "The members of this collection.",
+            "required": null,
+            "readonly": false,
+            "writeonly": false
+          }
+        ]
+      },
+      {
+        "@id": "http://www.w3.org/ns/hydra/core#Resource",
+        "@type": "hydra:Class",
+        "hydra:title": "Resource",
+        "hydra:description": null,
+        "supportedOperation": [],
+        "supportedProperty": []
+      },
+      {
+        "@id": "http://www.w3.org/ns/org#Organization",
+        "@type": "hydra:Class",
+        "hydra:title": "Organization",
+        "hydra:description": null,
+        "supportedOperation": [
+          {
+            "@id": "_:Organization_replace",
+            "@type": "http://schema.org/UpdateAction",
+            "method": "PUT",
+            "label": "Replaces an existing Organization entity",
+            "description": null,
+            "expects": "http://www.w3.org/ns/org#Organization",
+            "returns": "http://www.w3.org/ns/org#Organization",
+            "statusCodes": [
+              {
+                "code": 404,
+                "description": "If the Organization entity wasn't found."
+              }
+            ]
+          },
+          {
+            "@id": "_:Organization_delete",
+            "@type": "http://schema.org/DeleteAction",
+            "method": "DELETE",
+            "label": "Deletes a Organization entity",
+            "description": null,
+            "expects": null,
+            "returns": "http://www.w3.org/2002/07/owl#Nothing",
+            "statusCodes": []
+          },
+          {
+            "@id": "_:Organization_retrieve",
+            "@type": "hydra:Operation",
+            "method": "GET",
+            "label": "Retrieves a Organization entity",
+            "description": null,
+            "expects": null,
+            "returns": "http://www.w3.org/ns/org#Organization",
+            "statusCodes": []
+          }
+        ],
+        "supportedProperty": [
+          {
+            "property": "http://schema.org/name",
+            "hydra:title": "name",
+            "hydra:description": "The Organization's name",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          },
+          {
+            "property": "http://schema.org/description",
+            "hydra:title": "description",
+            "hydra:description": "Description of the Organization",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          },
+          {
+            "property": "http://schema.org/startDate",
+            "hydra:title": "start_date",
+            "hydra:description": "The start date and time of the Organization in ISO 8601 date format",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          },
+          {
+            "property": "http://schema.org/endDate",
+            "hydra:title": "end_date",
+            "hydra:description": "The end date and time of the Organization in ISO 8601 date format",
+            "required": true,
+            "readonly": false,
+            "writeonly": false
+          }
+        ]
+      },
+      {
+        "@id": "vocab:EntryPoint",
+        "@type": "hydra:Class",
+        "subClassOf": null,
+        "label": "EntryPoint",
+        "description": "The main entry point or homepage of the API.",
+        "supportedOperation": [
+          {
+            "@id": "_:entry_point",
+            "@type": "hydra:Operation",
+            "method": "GET",
+            "label": "The APIs main entry point.",
+            "description": null,
+            "expects": null,
+            "returns": "vocab:EntryPoint",
+            "statusCodes": []
+          }
+        ],
+        "supportedProperty": [
+          {
+            "property": {
+              "@id": "vocab:EntryPoint/organizations",
+              "@type": "hydra:Link",
+              "label": "Organizations",
+              "description": "The Organizations collection",
+              "domain": "vocab:EntryPoint",
+              "range": "vocab:OrganizationCollection",
+              "supportedOperation": [
+                {
+                  "@id": "_:Organization_collection_retrieve",
+                  "@type": "hydra:Operation",
+                  "method": "GET",
+                  "label": "Retrieves all Organization entities",
+                  "description": null,
+                  "expects": null,
+                  "returns": "vocab:OrganizationCollection",
+                  "statusCodes": []
+                }
+              ]
+            },
+            "hydra:title": "Organizations",
+            "hydra:description": "The Organizations collection",
+            "required": null,
+            "readonly": true,
+            "writeonly": false
+          }
+        ]
+      },
+      {
+        "@id": "vocab:OrganizationCollection",
+        "@type": "hydra:Class",
+        "subClassOf": "http://www.w3.org/ns/hydra/core#Collection",
+        "label": "OrganizationCollection",
+        "description": "A collection of Organizations",
+        "supportedOperation": [
+          {
+            "@id": "_:Organization_create",
+            "@type": "http://schema.org/AddAction",
+            "method": "POST",
+            "label": "Creates a new Organization entity",
+            "description": null,
+            "expects": "http://www.w3.org/ns/org#Organization",
+            "returns": "http://www.w3.org/ns/org#Organization",
+            "statusCodes": [
+              {
+                "code": 201,
+                "description": "If the Organization entity was created successfully."
+              }
+            ]
+          },
+          {
+            "@id": "_:Organization_collection_retrieve",
+            "@type": "hydra:Operation",
+            "method": "GET",
+            "label": "Retrieves all Organization entities",
+            "description": null,
+            "expects": null,
+            "returns": "vocab:OrganizationCollection",
+            "statusCodes": []
+          }
+        ],
+        "supportedProperty": [
+          {
+            "property": "http://www.w3.org/ns/hydra/core#member",
+            "hydra:title": "members",
+            "hydra:description": "The Organizations",
+            "required": null,
+            "readonly": false,
+            "writeonly": false
+          }
+        ]
+      }
+    ]
+  };
   res.send(apiDocumentation);
 });
 
