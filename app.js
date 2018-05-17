@@ -5,30 +5,6 @@ const sparql = new (require('sparql-client-2').SparqlClient)('http://data.vlaand
 
 const PAGE_SIZE = 10;
 
-
-const example = {
-  "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
-    "Organization": "http://example.org/Organization",
-    "hydra": "http://www.w3.org/ns/hydra/core#",
-    "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
-    "name": "http://schema.org/name",
-    "description": "http://schema.org/description",
-    "start_date": {
-      "@id": "http://schema.org/startDate",
-      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-    },
-    "end_date": {
-      "@id": "http://schema.org/endDate",
-      "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-    }
-  }],
-  "@id": "/org/1",
-  // "@type": "http://example.org/Organization",
-  "@type": "Organization",
-  "title": "An exemplary organization representation",
-  "description": "This org can be deleted with an HTTP DELETE request"
-};
-
 const apiDocumentation = {
   "@context": {
     "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
@@ -303,8 +279,57 @@ app.get('/oslo-api', (req, res) => {
   res.send(doc);
 });
 
-app.get('/oslo-api/org/1', (req, res) => {
-  res.send(example);
+app.get('/oslo-api/organizations/:id', async (req, res) => {
+  const orgId = req.params.id;
+
+  const response = await sparql.query(`
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    SELECT * WHERE {
+      OPTIONAL { <${orgId}> rdfs:seeAlso ?seeAlso. } .
+      OPTIONAL { <${orgId}> <http://mu.semte.ch/vocabularies/core/uuid> ?uuid. } .
+      OPTIONAL { <${orgId}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?label. } .
+      OPTIONAL { <${orgId}> <http://www.w3.org/ns/regorg#orgStatus> ?status. } .
+      OPTIONAL { <${orgId}> <http://www.w3.org/ns/org#classification> ?classification. } .
+      OPTIONAL { <${orgId}> <http://www.w3.org/2004/02/skos/core#altLabel> ?altLabel. } .
+      OPTIONAL { <${orgId}> <http://www.w3.org/ns/org#identifier> ?identifier }
+    }`).execute();
+
+  if (!response.results.bindings.length) {
+    return res.error(404);
+  }
+
+  const bindings = {};
+  for (key of Object.keys(response.results.bindings[0])) {
+    bindings[key] = response.results.bindings[0][key].value;
+  }
+
+  const doc = {
+    "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
+      "Organization": "http://example.org/Organization",
+      "hydra": "http://www.w3.org/ns/hydra/core#",
+      "vocab": "http://localhost:3000/oslo-api/apiDocumentation#",
+      "name": "http://schema.org/name",
+      "description": "http://schema.org/description",
+      "seeAlso": {
+        "@id": "rdfs:seeAlso",
+        "@type": "@id"
+      },
+      "uuid": "http://mu.semte.ch/vocabularies/core/uuid",
+      "label": "http://www.w3.org/2004/02/skos/core#prefLabel",
+      "status": {
+        "@id": "http://www.w3.org/ns/regorg#orgStatus",
+        "@type": "@id"
+      },
+      "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
+      "identifier": "http://www.w3.org/ns/org#identifier",
+    }],
+    "@id": `/oslo-api/organizations/${encodeURIComponent(orgId)}`,
+    "@type": "Organization",
+    ...bindings
+  };
+
+  res.send(doc);
 });
 
 app.get('/oslo-api/organizations/', async (req, res) => {
@@ -324,7 +349,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
     LIMIT ${PAGE_SIZE}`).execute();
 
   const organizations = response.results.bindings.map((binding) => ({
-    "@id": binding.org.value,
+    "@id": "/oslo-api/organizations/" + encodeURIComponent(binding.org.value),
     "@type": "http://www.w3.org/ns/org#Organization"
   }));
 
@@ -349,7 +374,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
   res.send(doc);
 });
 
-app.get('/apiDocumentation', (req, res) => {
+app.get('/oslo-api/apiDocumentation', (req, res) => {
   res.send(apiDocumentation);
 });
 
