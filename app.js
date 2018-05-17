@@ -173,10 +173,12 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
       "subClassOf": {
         "@id": "rdfs:subClassOf",
         "@type": "@id"
-      }
+      },
+      "license": "http://creativecommons.org/ns#license",
     },
     "@id": "http://localhost:3000/apiDocumentation",
     "@type": "ApiDocumentation",
+    "license": "https://overheid.vlaanderen.be/sites/default/files/documenten/ict-egov/licenties/hergebruik/modellicentie_gratis_hergebruik_v1_0.html",
     "supportedClass": [
       {
         "@id": "http://www.w3.org/ns/hydra/core#Collection",
