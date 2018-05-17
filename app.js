@@ -8,6 +8,7 @@ const PAGE_SIZE = 10;
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Cache-Control", "max-age=604800"); // 1 week
   res.header("Content-Type", "application/ld+json");
   res.set('Link', '<http://localhost:3000/apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
 
