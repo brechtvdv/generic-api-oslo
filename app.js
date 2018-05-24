@@ -127,10 +127,16 @@ app.get('/oslo-api/organizations/', async (req, res) => {
       "members": "hydra:member",
       "firstPage": {
         "@id": "hydra:first",
-        "@value": "@id"
+        "@type": "@id"
       },
-      "nextPage": "hydra:next",
-      "previousPage": "hydra:previous"
+      "nextPage": {
+        "@id": "hydra:next",
+        "@type": "@id"
+      },
+      "previousPage": {
+        "@id": "hydra:previous",
+        "@type": "@id"
+      }
     }],
     "@id": "/oslo-api/organizations/",
     "@type": "OrganizationCollection",
