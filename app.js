@@ -194,7 +194,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         "@id": "rdfs:subClassOf",
         "@type": "@id"
       },
-      "license": "http://creativecommons.org/ns#license",
+      "license": "http://creativecommons.org/ns#license"
     }, baseUrl + 'oslo-api/organisatie.jsonld'],
     "@id": baseUrl + "oslo-api/apiDocumentation",
     "@type": "ApiDocumentation",
@@ -226,7 +226,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         "supportedProperty": []
       },
       {
-        "@id": "Organisatie",
+        "@id": "http://www.w3.org/ns/org#Organization",
         "@type": "hydra:Class",
         "hydra:title": "Organization",
         "hydra:description": null,
@@ -237,8 +237,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "PUT",
             "label": "Replaces an existing Organization entity",
             "description": null,
-            "expects": "Organisatie",
-            "returns": "Organisatie",
+            "expects": "http://www.w3.org/ns/org#Organization",
+            "returns": "http://www.w3.org/ns/org#Organization",
             "statusCodes": [
               {
                 "code": 404,
@@ -263,7 +263,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "label": "Retrieves a Organization entity",
             "description": null,
             "expects": null,
-            "returns": "Organisatie",
+            "returns": "http://www.w3.org/ns/org#Organization",
             "statusCodes": []
           }
         ],
@@ -379,8 +379,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "POST",
             "label": "Creates a new Organization entity",
             "description": null,
-            "expects": "Organisatie",
-            "returns": "Organisatie",
+            "expects": "http://www.w3.org/ns/org#Organization",
+            "returns": "http://www.w3.org/ns/org#Organization",
             "statusCodes": [
               {
                 "code": 201,
@@ -438,8 +438,7 @@ app.get('/oslo-api/organisatie.jsonld', (req, res) => {
     "Agent":"http://purl.org/dc/terms/Agent",
     "FormeleOrganisatie":"http://www.w3.org/ns/org#FormalOrganization",
     "OrganisatieEenheid":"http://www.w3.org/ns/org#OrganizationalUnit",
-    "Organisatie":"http://www.w3.org/ns/org#Organization",
-
+    "Organisatie": "http://www.w3.org/ns/org#Organization",
     "vindtPlaatsBinnen":{
       "@id":"http://data.europa.eu/m8g/hasFormalFramework",
       "@type":"http://purl.org/vocab/cpsv#FormalFramework",
