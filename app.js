@@ -34,7 +34,7 @@ app.get('/oslo-api', (req, res) => {
         "@id": "vocab:EntryPoint/organizations",
         "@type": "@id"
       }
-    }, organisatieContext],
+    }, baseUrl + 'oslo-api/organisatie.jsonld'],
     "@id": "/oslo-api",
     "@type": "EntryPoint",
     "organizations": "/oslo-api/organizations"
@@ -88,7 +88,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       "identifier": "http://www.w3.org/ns/org#identifier",
       "classification": "http://www.w3.org/ns/org#classification"
     },
-    organisatieContext],
+    baseUrl + 'oslo-api/organisatie.jsonld'],
     "@id": `/oslo-api/organizations/${encodeURIComponent(orgId)}`,
     "@type": "Organisatie",
     ...bindings
@@ -119,7 +119,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
   }));
 
   const doc = {
-    "@context": [organisatieContext,
+    "@context": [baseUrl + 'oslo-api/organisatie.jsonld',
       {"hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrl + "oslo-api/apiDocumentation#",
       "OrganizationCollection": "vocab:OrganizationCollection",
@@ -195,7 +195,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         "@type": "@id"
       },
       "license": "http://creativecommons.org/ns#license",
-    }, organisatieContext],
+    }, baseUrl + 'oslo-api/organisatie.jsonld'],
     "@id": baseUrl + "oslo-api/apiDocumentation",
     "@type": "ApiDocumentation",
     "license": "https://overheid.vlaanderen.be/sites/default/files/documenten/ict-egov/licenties/hergebruik/modellicentie_gratis_hergebruik_v1_0.html",
@@ -415,9 +415,10 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
   res.send(apiDocumentation);
 });
 
-app.listen(3000, () => console.log('Example app listening on port 3000!'))
-
-const organisatieContext = {
+app.get('/oslo-api/organisatie.jsonld', (req, res) => {
+  const organisatieContext = {
+  "@context":
+  {
     "Vervanging":"http://data.vlaanderen.be/ns/organisatie#Vervanging",
     "Fusie":"http://data.vlaanderen.be/ns/organisatie#Fusie",
     "Splitsing":"http://data.vlaanderen.be/ns/organisatie#Splitsing",
@@ -702,4 +703,8 @@ const organisatieContext = {
       "@type":"http://www.w3.org/2004/02/skos/core#Concept",
       "@container":"@set"
     }
-};
+  }};
+  res.send(JSON.stringify(organisatieContext));
+});
+
+app.listen(3000, () => console.log('Example app listening on port 3000!'))
