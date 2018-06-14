@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const SPARQL = require('sparql-client-2').SPARQL;
-const sparql = new (require('sparql-client-2').SparqlClient)('http://data.vlaanderen.be/sparql');
+const sparql = new (require('sparql-client-2').SparqlClient)('https://data.vlaanderen.be/sparql');
 
 const PAGE_SIZE = 10;
 const baseUrl = process.argv.length < 3 ? 'http://localhost:3000/' : process.argv[2];
