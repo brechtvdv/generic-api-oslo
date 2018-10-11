@@ -3,7 +3,7 @@ const app = express()
 const SPARQL = require('sparql-client-2').SPARQL;
 const sparql = new (require('sparql-client-2').SparqlClient)('https://data.vlaanderen.be/sparql');
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 100;
 const baseUrl = process.argv.length < 3 ? 'http://localhost:3000/' : process.argv[2];
 
 app.enable('etag')
@@ -54,7 +54,6 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       OPTIONAL { <${orgId}> <http://mu.semte.ch/vocabularies/core/uuid> ?uuid. } .
       OPTIONAL { <${orgId}> <http://www.w3.org/2004/02/skos/core#prefLabel> ?label. } .
       OPTIONAL { <${orgId}> <http://www.w3.org/ns/regorg#orgStatus> ?status. } .
-      OPTIONAL { <${orgId}> <http://www.w3.org/ns/org#classification> ?classification. } .
       OPTIONAL { <${orgId}> <http://www.w3.org/2004/02/skos/core#altLabel> ?altLabel. } .
       OPTIONAL { <${orgId}> <http://www.w3.org/ns/org#identifier> ?identifier }
     }`).execute();
@@ -72,6 +71,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
     "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrl + "oslo-api/apiDocumentation#",
+      "sh": "http://www.w3.org/ns/shacl#",
       "name": "http://schema.org/name",
       "description": "http://schema.org/description",
       "seeAlso": {
@@ -86,13 +86,29 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       },
       "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
       "identifier": "http://www.w3.org/ns/org#identifier",
-      "classification": "http://www.w3.org/ns/org#classification"
-    },
-    baseUrl + 'oslo-api/organisatie.jsonld'],
-    "@id": `/oslo-api/organizations/${encodeURIComponent(orgId)}`,
+    }
+    , baseUrl + 'oslo-api/organisatie.jsonld'],
+    "@graph": [{
+    //'https://data.vlaanderen.be/context/organisatie-basis.jsonld'],
+    "@id": orgId,
     "@type": "Organisatie",
     ...bindings
-  };
+  },
+  {
+    "@id": baseUrl + 'oslo-api/organizations/' + encodeURIComponent(orgId),
+    "operation": [
+      {
+        "@type": "Operation",
+        "method": "GET",
+        "returns": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape"
+      },
+      {
+        "@type": "Operation",
+        "method": "PUT",
+        "expects": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape"
+      }]
+  }
+  ]};
 
   res.send(doc);
 });
@@ -100,30 +116,67 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
 app.get('/oslo-api/organizations/', async (req, res) => {
   let page = req.query.page;
   if (!page) {
-    return res.redirect('/oslo-api/organizations/?page=0');
+    return res.redirect('/oslo-api/organizations?page=0');
   }
   page = parseInt(page, 10);
   const offset = page * PAGE_SIZE;
   const response = await sparql.query(SPARQL`
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    SELECT ?org WHERE {
+    SELECT DISTINCT * WHERE {
       ?org a <http://www.w3.org/ns/org#Organization>
+      OPTIONAL { ?org rdfs:seeAlso ?seeAlso. } .
+      OPTIONAL { ?org <http://mu.semte.ch/vocabularies/core/uuid> ?uuid. } .
+      OPTIONAL { ?org <http://www.w3.org/2004/02/skos/core#prefLabel> ?label. } .
+      OPTIONAL { ?org <http://www.w3.org/ns/regorg#orgStatus> ?status. } .
+      OPTIONAL { ?org <http://www.w3.org/2004/02/skos/core#altLabel> ?altLabel. } .
+      OPTIONAL { ?org <http://www.w3.org/ns/org#identifier> ?identifier }
     }
     OFFSET ${offset}
     LIMIT ${PAGE_SIZE}`).execute();
 
-  const organizations = response.results.bindings.map((binding) => ({
-    "@id": "/oslo-api/organizations/" + encodeURIComponent(binding.org.value),
-    "@type": "Organisatie"
-  }));
+  const organizations = response.results.bindings.map((binding) => {
+    let bindings = {};
+    for (key of Object.keys(binding)) {
+      if(key != 'org') bindings[key] = binding[key].value;
+    }
+
+    return {
+      "@id": binding.org.value,
+      "@type": "Organisatie",
+      "foaf:isPrimaryTopicOf": {
+          "@id": "/oslo-api/organizations/" + encodeURIComponent(binding.org.value)
+          //"@type": "foaf:Document"
+      }
+      //,
+      //...bindings
+  }});
 
   const doc = {
     "@context": [baseUrl + 'oslo-api/organisatie.jsonld',
       {"hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrl + "oslo-api/apiDocumentation#",
-      "OrganizationCollection": "vocab:OrganizationCollection",
-      "PagedCollection": "hydra:PagedCollection",
+      "name": "http://schema.org/name",
+      "description": "http://schema.org/description",
+      "seeAlso": {
+        "@id": "rdfs:seeAlso",
+        "@type": "@id"
+      },
+      "uuid": "http://mu.semte.ch/vocabularies/core/uuid",
+      "label": "http://www.w3.org/2004/02/skos/core#prefLabel",
+      "status": {
+        "@id": "http://www.w3.org/ns/regorg#orgStatus",
+        "@type": "@id"
+      },
+      "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
+      "identifier": "http://www.w3.org/ns/org#identifier",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "OrganizationPartialCollection": {
+        "@id": "vocab:OrganizationPartialCollection"
+      },
+      "foaf:primaryTopic": {
+        "@type": "@id"
+      },
       "members": "hydra:member",
       "firstPage": {
         "@id": "hydra:first",
@@ -138,16 +191,22 @@ app.get('/oslo-api/organizations/', async (req, res) => {
         "@type": "@id"
       }
     }],
-    "@id": "/oslo-api/organizations/",
-    "@type": "OrganizationCollection",
-    "firstPage": "/oslo-api/organizations?page=0",
-    "nextPage": "/oslo-api/organizations?page=" + (page + 1)
+    "@id": "/oslo-api/organizations?page=" + page,
+    "@type": "OrganizationPartialCollection",
+    "hydra:manages": "Organisatie",
+    "firstPage": "/oslo-api/organizations?page=0"
   };
   if (page > 0) {
     doc["previousPage"] = "/oslo-api/organizations?page=" + (page - 1);
   }
+  if (organizations.length === PAGE_SIZE) {
+    doc["nextPage"] = "/oslo-api/organizations?page=" + (page + 1)
+  }
   doc["members"] = organizations;
 
+/*  let etag = 'W/"' + md5(doc) + '"';
+  res.setHeader('ETag', etag);*/
+  res.setHeader('Cache-Control', 'public, max-age=1000');
   res.send(doc);
 });
 
@@ -225,7 +284,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         "supportedOperation": [],
         "supportedProperty": []
       },
-      {
+      /*{
         "@id": "http://www.w3.org/ns/org#Organization",
         "@type": "hydra:Class",
         "hydra:title": "Organization",
@@ -237,8 +296,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "PUT",
             "label": "Replaces an existing Organization entity",
             "description": null,
-            "expects": "http://www.w3.org/ns/org#Organization",
-            "returns": "http://www.w3.org/ns/org#Organization",
+            "expects": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape",
+            "returns": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape",
             "statusCodes": [
               {
                 "code": 404,
@@ -262,62 +321,13 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "GET",
             "label": "Retrieves a Organization entity",
             "description": null,
-            "expects": null,
-            "returns": "http://www.w3.org/ns/org#Organization",
+            "expects": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape",
+            "returns": "https://data.vlaanderen.be/shacl/Organisatie-SHACL#OrganizationShape",
             "statusCodes": []
           }
         ],
-        "supportedProperty": [
-          {
-            "property": "http://www.w3.org/2004/02/skos/core#prefLabel",
-            "hydra:title": "label",
-            "hydra:description": "The Organization's label",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          },
-          {
-            "property": "rdfs:seeAlso",
-            "hydra:title": "seeAlso",
-            "hydra:description": "Related link",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          },
-          {
-            "property": "http://mu.semte.ch/vocabularies/core/uuid",
-            "hydra:title": "uuid",
-            "hydra:description": "UUID of the organization",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          },
-          {
-            "property": "http://www.w3.org/ns/regorg#orgStatus",
-            "hydra:title": "status",
-            "hydra:description": "Status of the organization",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          },
-          {
-            "property": "http://www.w3.org/ns/org#classification",
-            "hydra:title": "classification",
-            "hydra:description": "Classifier for the organization.",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          },
-          {
-            "property": "http://www.w3.org/ns/org#identifier",
-            "hydra:title": "status",
-            "hydra:description": "Internal organization identifier",
-            "required": true,
-            "readonly": false,
-            "writeonly": false
-          }
-        ]
-      },
+        "supportedProperty": []
+      },*/
       {
         "@id": "vocab:EntryPoint",
         "@type": "hydra:Class",
@@ -344,7 +354,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
               "label": "Organizations",
               "description": "The Organizations collection",
               "domain": "vocab:EntryPoint",
-              "range": "vocab:OrganizationCollection",
+              "range": "vocab:OrganizationPartialCollection",
               "supportedOperation": [
                 {
                   "@id": "_:Organization_collection_retrieve",
@@ -353,7 +363,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
                   "label": "Retrieves all Organization entities",
                   "description": null,
                   "expects": null,
-                  "returns": "vocab:OrganizationCollection",
+                  "returns": "vocab:OrganizationPartialCollection",
                   "statusCodes": []
                 }
               ]
@@ -367,35 +377,20 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         ]
       },
       {
-        "@id": "vocab:OrganizationCollection",
+        "@id": "vocab:OrganizationPartialCollection",
         "@type": "hydra:Class",
-        "subClassOf": "http://www.w3.org/ns/hydra/core#Collection",
+        "subClassOf": "http://www.w3.org/ns/hydra/core#PartialCollection",
         "label": "OrganizationCollection",
-        "description": "A collection of Organizations",
+        "description": "A partial collection of Organizations",
         "supportedOperation": [
-          {
-            "@id": "_:Organization_create",
-            "@type": "http://schema.org/AddAction",
-            "method": "POST",
-            "label": "Creates a new Organization entity",
-            "description": null,
-            "expects": "http://www.w3.org/ns/org#Organization",
-            "returns": "http://www.w3.org/ns/org#Organization",
-            "statusCodes": [
-              {
-                "code": 201,
-                "description": "If the Organization entity was created successfully."
-              }
-            ]
-          },
           {
             "@id": "_:Organization_collection_retrieve",
             "@type": "hydra:Operation",
             "method": "GET",
-            "label": "Retrieves all Organization entities",
+            "label": "Retrieves a page of Organization entities",
             "description": null,
             "expects": null,
-            "returns": "vocab:OrganizationCollection",
+            "returns": "vocab:OrganizationPartialCollection",
             "statusCodes": []
           }
         ],
@@ -403,7 +398,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
           {
             "property": "http://www.w3.org/ns/hydra/core#member",
             "hydra:title": "members",
-            "hydra:description": "The Organizations",
+            "hydra:description": "The Organizations of this page",
             "required": null,
             "readonly": false,
             "writeonly": false
