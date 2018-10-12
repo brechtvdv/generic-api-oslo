@@ -4,8 +4,8 @@ const SPARQL = require('sparql-client-2').SPARQL;
 const sparql = new (require('sparql-client-2').SparqlClient)('https://data.vlaanderen.be/sparql');
 
 const PAGE_SIZE = 100;
-const PORT = process.argv.length < 3 ? 3000 : process.argv[3];
-const baseUrl = process.argv.length < 3 ? 'http://localhost:3000/' : process.argv[2] + process.argv[3];
+const port = process.argv.length < 4 ? 3000 : process.argv[3];
+const baseUrl = process.argv.length < 3 ? 'http://localhost:' + port : process.argv[2] + ':' + port + '/';
 
 app.enable('etag')
 
@@ -702,4 +702,4 @@ app.get('/oslo-api/organisatie.jsonld', (req, res) => {
   res.send(JSON.stringify(organisatieContext));
 });
 
-app.listen(PORT, () => console.log('Example app listening on port ' + PORT + '!'))
+app.listen(port, () => console.log('Example app listening on port ' + port + '!'))
