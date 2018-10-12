@@ -6,6 +6,7 @@ const sparql = new (require('sparql-client-2').SparqlClient)('https://data.vlaan
 const PAGE_SIZE = 100;
 const port = process.argv.length < 4 ? 3000 : process.argv[3];
 const baseUrl = process.argv.length < 3 ? 'http://localhost:' + port : process.argv[2] + ':' + port + '/';
+const baseUrlWithNginx = process.argv.length > 4 ? process.argv[4] : baseUrl;
 
 app.enable('etag')
 
@@ -16,7 +17,7 @@ app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   res.header("Cache-Control", "max-age=604800"); // 1 week
   res.header("Content-Type", "application/ld+json");
-  res.set('Link', '<' + baseUrl + 'oslo-api/apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
+  res.set('Link', '<' + baseUrlWithNginx + 'oslo-api/apiDocumentation>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"');
 
   next();
 });
@@ -29,13 +30,13 @@ app.get('/oslo-api', (req, res) => {
   const doc = {
     "@context": [{
       "hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": baseUrl + "oslo-api/apiDocumentation#",
+      "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "EntryPoint": "vocab:EntryPoint",
       "organizations": {
         "@id": "vocab:EntryPoint/organizations",
         "@type": "@id"
       }
-    }, baseUrl + 'oslo-api/organisatie.jsonld'],
+    }, baseUrlWithNginx + 'oslo-api/organisatie.jsonld'],
     "@id": "/oslo-api",
     "@type": "EntryPoint",
     "organizations": "/oslo-api/organizations"
@@ -71,7 +72,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
   const doc = {
     "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
       "hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": baseUrl + "oslo-api/apiDocumentation#",
+      "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "sh": "http://www.w3.org/ns/shacl#",
       "name": "http://schema.org/name",
       "description": "http://schema.org/description",
@@ -88,7 +89,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
       "identifier": "http://www.w3.org/ns/org#identifier",
     }
-    , baseUrl + 'oslo-api/organisatie.jsonld'],
+    , baseUrlWithNginx + 'oslo-api/organisatie.jsonld'],
     "@graph": [{
     //'https://data.vlaanderen.be/context/organisatie-basis.jsonld'],
     "@id": orgId,
@@ -96,7 +97,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
     ...bindings
   },
   {
-    "@id": baseUrl + 'oslo-api/organizations/' + encodeURIComponent(orgId),
+    "@id": baseUrlWithNginx + 'oslo-api/organizations/' + encodeURIComponent(orgId),
     "operation": [
       {
         "@type": "Operation",
@@ -154,9 +155,9 @@ app.get('/oslo-api/organizations/', async (req, res) => {
   }});
 
   const doc = {
-    "@context": [baseUrl + 'oslo-api/organisatie.jsonld',
+    "@context": [baseUrlWithNginx + 'oslo-api/organisatie.jsonld',
       {"hydra": "http://www.w3.org/ns/hydra/core#",
-      "vocab": baseUrl + "oslo-api/apiDocumentation#",
+      "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "name": "http://schema.org/name",
       "description": "http://schema.org/description",
       "seeAlso": {
@@ -214,7 +215,7 @@ app.get('/oslo-api/organizations/', async (req, res) => {
 app.get('/oslo-api/apiDocumentation', (req, res) => {
   const apiDocumentation = {
     "@context": [{
-      "vocab": baseUrl + "oslo-api/apiDocumentation#",
+      "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "ApiDocumentation": "hydra:ApiDocumentation",
       "property": {
@@ -255,8 +256,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
         "@type": "@id"
       },
       "license": "http://creativecommons.org/ns#license"
-    }, baseUrl + 'oslo-api/organisatie.jsonld'],
-    "@id": baseUrl + "oslo-api/apiDocumentation",
+    }, baseUrlWithNginx + 'oslo-api/organisatie.jsonld'],
+    "@id": baseUrlWithNginx + "oslo-api/apiDocumentation",
     "@type": "ApiDocumentation",
     "license": "https://overheid.vlaanderen.be/sites/default/files/documenten/ict-egov/licenties/hergebruik/modellicentie_gratis_hergebruik_v1_0.html",
     "supportedClass": [

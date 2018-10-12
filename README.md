@@ -2,6 +2,6 @@
 
 ## Run
 ```
-node app.js http://my.base.url 3000
+node app.js http://my.base.url 3000 http://my.base.url.with.nginx
 ```
 
