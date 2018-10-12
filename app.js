@@ -102,12 +102,12 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       {
         "@type": "Operation",
         "method": "GET",
-        "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape"
+        "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape"
       },
       {
         "@type": "Operation",
         "method": "PUT",
-        "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape"
+        "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape"
       }]
   }
   ]};
@@ -298,8 +298,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "PUT",
             "label": "Replaces an existing Organization entity",
             "description": null,
-            "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape",
-            "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape",
+            "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape",
+            "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape",
             "statusCodes": [
               {
                 "code": 404,
@@ -323,8 +323,8 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
             "method": "GET",
             "label": "Retrieves a Organization entity",
             "description": null,
-            "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape",
-            "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganizationShape",
+            "expects": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape",
+            "returns": "https://data.vlaanderen.be/shacl/organisatie-basis#OrganisatieShape",
             "statusCodes": []
           }
         ],
