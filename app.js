@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 app.get('/oslo-api', (req, res) => {
   const doc = {
     "@context": [{
-      "hydra": "https://www.w3.org/ns/hydra/core#",
+      "hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "EntryPoint": "vocab:EntryPoint",
       "organizations": {
