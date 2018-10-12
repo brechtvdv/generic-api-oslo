@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
 app.get('/oslo-api', (req, res) => {
   const doc = {
     "@context": [{
-      "hydra": "http://www.w3.org/ns/hydra/core#",
+      "hydra": "https://www.w3.org/ns/hydra/core#",
       "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "EntryPoint": "vocab:EntryPoint",
       "organizations": {
@@ -70,7 +70,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
   }
 
   const doc = {
-    "@context": ["http://www.w3.org/ns/hydra/context.jsonld", {
+    "@context": ["https://www.w3.org/ns/hydra/context.jsonld", {
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "sh": "http://www.w3.org/ns/shacl#",
