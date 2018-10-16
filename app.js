@@ -70,7 +70,8 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
   }
 
   const doc = {
-    "@context": ["https://www.w3.org/ns/hydra/context.jsonld", {
+    "@context": ["https://www.w3.org/ns/hydra/context.jsonld", 
+      baseUrlWithNginx + 'oslo-api/organisatie.jsonld', {
       "hydra": "http://www.w3.org/ns/hydra/core#",
       "vocab": baseUrlWithNginx + "oslo-api/apiDocumentation#",
       "sh": "http://www.w3.org/ns/shacl#",
@@ -88,8 +89,7 @@ app.get('/oslo-api/organizations/:id', async (req, res) => {
       },
       "altLabel": "http://www.w3.org/2004/02/skos/core#altLabel",
       "identifier": "http://www.w3.org/ns/org#identifier",
-    }
-    , baseUrlWithNginx + 'oslo-api/organisatie.jsonld'],
+    }],
     "@graph": [{
     //'https://data.vlaanderen.be/context/organisatie-basis.jsonld'],
     "@id": orgId,
