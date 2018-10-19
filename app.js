@@ -381,7 +381,7 @@ app.get('/oslo-api/apiDocumentation', (req, res) => {
       {
         "@id": "vocab:OrganizationPartialCollection",
         "@type": "hydra:Class",
-        "subClassOf": "http://www.w3.org/ns/hydra/core#PartialCollection",
+        "subClassOf": "http://www.w3.org/ns/hydra/core#PartialCollectionView",
         "label": "OrganizationCollection",
         "description": "A partial collection of Organizations",
         "supportedOperation": [
